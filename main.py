@@ -1,24 +1,31 @@
 import cv2
 
-# Open the default webcam
-cap = cv2.VideoCapture(0)
 
-while True:
-    # Read one frame from the webcam
-    ret, frame = cap.read()
+def main():
+    # 0 means default webcam
+    cap = cv2.VideoCapture(0)
 
-    # If camera cannot be read, stop the program
-    if not ret:
-        print("Camera not found")
-        break
+    if not cap.isOpened():
+        print("Error: Could not open webcam.")
+        return
 
-    # Show the webcam frame in a window
-    cv2.imshow("Camera Test", frame)
+    while True:
+        ret, frame = cap.read()
 
-    # Press q to quit
-    if cv2.waitKey(1) == ord("q"):
-        break
+        if not ret:
+            print("Error: Could not read frame.")
+            break
 
-# Release camera and close window
-cap.release()
-cv2.destroyAllWindows()
+        # Show original webcam frame
+        cv2.imshow("Computer Vision Project - Original", frame)
+
+        # Press q to quit
+        if cv2.waitKey(1) == ord("q"):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    main()
