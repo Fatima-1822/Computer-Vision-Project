@@ -1,8 +1,8 @@
 import cv2
+from image_stats import calculate_basic_stats
 
 
 def main():
-    # 0 means default webcam
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
@@ -16,10 +16,16 @@ def main():
             print("Error: Could not read frame.")
             break
 
-        # Show original webcam frame
-        cv2.imshow("Computer Vision Project - Original", frame)
+        stats = calculate_basic_stats(frame)
 
-        # Press q to quit
+        # Print statistics for each RGB channel
+        print("Red:", stats["Red"])
+        print("Green:", stats["Green"])
+        print("Blue:", stats["Blue"])
+        print("-" * 50)
+
+        cv2.imshow("Original Webcam", frame)
+
         if cv2.waitKey(1) == ord("q"):
             break
 
