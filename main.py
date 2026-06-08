@@ -5,7 +5,7 @@ from transformation import linear_transformation
 from histogram import create_rgb_histogram_image, equalize_histogram
 from filters import sobel_edge_detection
 from virtual_camera import start_virtual_camera
-
+from special_task import FunnyFaceEmojiTask
 
 def draw_stats_on_frame(frame, stats):
     """
@@ -49,6 +49,8 @@ def main():
     if not cap.isOpened():
         print("Error: Could not open webcam.")
         return
+    
+    
 
     # Getting webcam size because virtual camera needs same width and height
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -57,12 +59,17 @@ def main():
     # Simple fixed FPS for virtual camera output
     fps = 20
 
+    # Create special task object for funny face / emoji mode
+    special_task = FunnyFaceEmojiTask()
+
+
     # Start virtual camera so OBS/Zoom can receive our processed frame
     virtual_cam = start_virtual_camera(width, height, fps)
 
     show_transformed = False
     show_equalized = False
     show_sobel = False
+    show_special = False
 
     while True:
 
@@ -73,7 +80,9 @@ def main():
             break
 
         # Select processing mode
-        if show_sobel:
+        if show_special:
+         output_frame = special_task.process_frame(frame)
+        elif show_sobel:
             output_frame = sobel_edge_detection(frame)
 
         elif show_equalized:
@@ -106,7 +115,7 @@ def main():
         # Controls help text
         cv2.putText(
             output_frame,
-            "t=Linear  e=Equalization  s=Sobel  q=Quit",
+            "t=Linear  e=Equalization  s=Sobel  f=Funny Face  1-6=Emoji Modes  q=Quit",
             (20, output_frame.shape[0] - 20),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.6,
@@ -126,7 +135,10 @@ def main():
         histogram_image = create_rgb_histogram_image(output_frame)
         cv2.imshow("RGB Histogram", histogram_image)
 
-        key = cv2.waitKey(1)
+        key = cv2.waitKey(1) & 0xFF
+
+        # Send key to special task so 1,2,3,4,5,6 can change emoji modes
+        special_task.set_mode_from_key(key)
 
         # Linear transformation
         if key == ord("t"):
@@ -145,6 +157,15 @@ def main():
             show_sobel = not show_sobel
             show_transformed = False
             show_equalized = False
+            
+        # Funny face / emoji special task
+        if key == ord("f"):
+            show_special = not show_special
+            show_transformed = False
+            show_equalized = False
+            show_sobel = False
+
+    
 
         # Quit
         if key == ord("q"):
