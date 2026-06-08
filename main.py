@@ -4,6 +4,7 @@ from image_stats import calculate_basic_stats, calculate_entropy
 from transformation import linear_transformation
 from histogram import create_rgb_histogram_image, equalize_histogram
 from filters import sobel_edge_detection
+from virtual_camera import start_virtual_camera
 
 
 def draw_stats_on_frame(frame, stats):
@@ -48,6 +49,16 @@ def main():
     if not cap.isOpened():
         print("Error: Could not open webcam.")
         return
+
+    # Getting webcam size because virtual camera needs same width and height
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    # Simple fixed FPS for virtual camera output
+    fps = 20
+
+    # Start virtual camera so OBS/Zoom can receive our processed frame
+    virtual_cam = start_virtual_camera(width, height, fps)
 
     show_transformed = False
     show_equalized = False
@@ -107,6 +118,10 @@ def main():
         # Main webcam window
         cv2.imshow("Computer Vision Project", output_frame)
 
+        # Send processed frame to virtual camera for OBS/Zoom/etc.
+        virtual_cam.send(output_frame)
+        virtual_cam.sleep_until_next_frame()
+
         # Histogram window
         histogram_image = create_rgb_histogram_image(output_frame)
         cv2.imshow("RGB Histogram", histogram_image)
@@ -136,6 +151,7 @@ def main():
             break
 
     cap.release()
+    virtual_cam.close()
     cv2.destroyAllWindows()
 
 
